@@ -53,6 +53,7 @@ module VDP
 	output            VS_N,
 		
 	input             BORDER_EN,
+	input             CRAM_DOTS,
 	input             VSCROLL_BUG, //'1';
 	input             OBJ_MAX,
 		
@@ -726,6 +727,7 @@ module VDP
 	wire  [8:0] CRAM_D = {IO_DATA[11:9],IO_DATA[7:5],IO_DATA[3:1]};
 	wire        CRAM_WE = ((IO_WE && FIFO_CODE == 4'b0011) || (DMA_FILL_WE && DMA_FILL_CODE == 4'b0011)) && SLOT == ST_EXT && SLOT_CE;
 	wire  [8:0] CRAM_Q_B;
+	wire  [8:0] CRAM_DATA = CRAM_D ? ((CRAM_WE == 1) && (CRAM_DOTS == 1)) : CRAM_Q_B;
 	dpram #(6,9) CRAM
 	(
 		.clock(CLK),
@@ -1851,28 +1853,29 @@ module VDP
 				case (PIX_MODE_PIPE[2])
 					PIX_SHADOW: begin
 						// half brightness
-						B <= {1'b0,PIX_COL_PIPE[1][8:6]};
-						G <= {1'b0,PIX_COL_PIPE[1][5:3]};
-						R <= {1'b0,PIX_COL_PIPE[1][2:0]};
+						B <= {1'b0,CRAM_DATA[8:6]};
+						G <= {1'b0,CRAM_DATA[5:3]};
+						R <= {1'b0,CRAM_DATA[2:0]};
 					end
 					
 					PIX_NORMAL: begin
 						// normal brightness
-						B <= {PIX_COL_PIPE[1][8:6],1'b0};
-						G <= {PIX_COL_PIPE[1][5:3],1'b0};
-						R <= {PIX_COL_PIPE[1][2:0],1'b0};
+						B <= {CRAM_DATA[8:6],1'b0};
+						G <= {CRAM_DATA[5:3],1'b0};
+						R <= {CRAM_DATA[2:0],1'b0};
 					end
 				
 					PIX_HIGHLIGHT: begin
 						// increased brightness
-						B <= {1'b0,PIX_COL_PIPE[1][8:6]} + 4'h7;
-						G <= {1'b0,PIX_COL_PIPE[1][5:3]} + 4'h7;
-						R <= {1'b0,PIX_COL_PIPE[1][2:0]} + 4'h7;
+						B <= {1'b0,CRAM_DATA[8:6]} + 4'h7;
+						G <= {1'b0,CRAM_DATA[5:3]} + 4'h7;
+						R <= {1'b0,CRAM_DATA[2:0]} + 4'h7;
 					end
 				endcase
 				YS_N <= ~BACK_COL_PIPE[2];
 				
 				CE_PIX <= 1;
+				CRAM_WE <= 0;
 			end
 		end
 	end
