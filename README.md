@@ -13,5 +13,3 @@ Copy your .32x rom files into the S32X folder inside games
 * Some features like cheats and game saves are not implemented at this time. Please don't submit an issue to request cheats or saves, this is known.
 
 Check the issues page to see if the issue you are experiencing is already known before submitting a new issue.
-
- 
